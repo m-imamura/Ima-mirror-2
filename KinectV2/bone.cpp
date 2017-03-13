@@ -1,3 +1,4 @@
+/*
 //ƒ{[ƒ“1l•ª
 
 #include <stdio.h>
@@ -50,3 +51,5 @@ void bone::set_bone_data(Joint joints){
 	}
 
 }
+
+*/

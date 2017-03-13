@@ -1,5 +1,5 @@
 // body１つ分の標本点
-
+/*
 #include <stdio.h>
 #include <Eigen/Core>		// 線形代数ライブラリ
 #include <opencv2\opencv.hpp>
@@ -23,3 +23,4 @@ void points::set_points_data(){
 	int i = 100;
 	return;
 }
+*/

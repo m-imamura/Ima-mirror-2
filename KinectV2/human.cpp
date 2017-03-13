@@ -1,3 +1,4 @@
+/*
 // Bone情報とpoints情報を持ったHumanクラス
 #include <stdio.h>
 #include <Kinect.h>
@@ -78,13 +79,6 @@ points human::get_translate_body(bone actor_bone){
 			d = (v2 - v1 * t).norm(); // ボーンと標本点の距離
 			w = pow(d + 1.0, -16); // ｗの設定も外に出した．（処理内容は変わらないはず．）逆数じゃなくした
 
-			/*
-			// d をクランプする // 2016－11－2改善．今まで根幹内に入っていたdクランプを外に出したら表現がまともになった．（不自然な割れがなくなった）→tクランプへ
-			if (t < 0){
-			d = v2.norm();
-			} else if (t > 1.0){
-			d = (v2 - v1).norm();
-			}*/
 
 			// ボーンの影響（重み）
 			Eigen::Matrix4f w_matrix;
@@ -179,3 +173,4 @@ points human::get_translate_body(bone actor_bone){
 	}
 
 }
+*/

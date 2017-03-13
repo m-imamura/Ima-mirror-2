@@ -1,3 +1,4 @@
+/*
 #include <stdio.h>
 #include <Eigen/Core>		// 線形代数ライブラリ
 #include <Eigen/Geometry>	// 外積の計算に必要
@@ -50,3 +51,4 @@ void rotate(Eigen::Matrix4f &mat, const Eigen::Vector4f &u, const Eigen::Vector4
 
 	return;
 }
+*/
