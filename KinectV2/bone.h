@@ -6,7 +6,7 @@
 #define JOINTS 25			// ジョイントの数
 #define BONES 24			// 人体のボーンの数
 
-class bone{
+class Bone{
 private:
 	// ボーンの情報
 	Eigen::Vector4f top_init[BONES];	//初期位置
@@ -21,6 +21,23 @@ private:
 
 public:
 
-	// ジョイントポジションをもらってボーン情報を更新するかんじの関数
-	void set_bone_data(Joint joints);
+	class Bone_connect{ // ボーン１本分の接続関係
+	private:
+	public:
+		int top;	//先端のジョイント番号
+		int bottom;	//根元のジョイント番号
+		int parent;	//親ボーン
+		double impactrange; //ボーンの影響範囲
+
+	};
+	Bone_connect bone_connect[BONES];
+
+	// 関数群
+
+	// ジョイントポジションをもらってボーン情報（自前）を更新する関数
+	void set_bones_data(IBody* body);
+
+	// ボーンの接続関係を定義する関数（インスタンス時に自動で呼ばれる↓）
+	void define_bone_connect(Bone_connect bone_connect[BONES]);
+
 };

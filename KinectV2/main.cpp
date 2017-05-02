@@ -2,29 +2,32 @@
 
 //////////////////////////////////////////////////
 // 背景取得後
-// 2017-03-13-作成
+// 2017-05-02-作成
 // コードを分割中です
 //
 // Ima-mirror 2 このコードのメモ
 //
 // 操作方法
-// ・実行して人が認識されてから動作する．
+// ・実行して人が認識されてから動作する．→人が認識されなくても始まる．
 // ・フルスクリーンの画面上でクリックすると入れ替わる．
 // ・キーボードの'o'で入れ替わるか，入れ替わらない（自分を動かす）か切り替え．
 // ・キーボードの'b'で背景を取得する．(new)
+// ・キーボードの'v'で背景を表示する・しない切り替え(new)
+// ・キーボードの'c'で人物のカラーかモノクロか切り替え(new)←以前は接触のバーの位置の切り替えに使用していた．
 // ・コンソールを閉じるか，'q'で終了．
 //
 // 使えない機能
 // ・接触判定は関数が残っていても機能しない．
 // ・KinectのBodyIndexやBodyなどは表示しないようにしている．(cv::imshow()をしないようにしているだけ)
+// ・ガイド表示を出していたけど，予備実験で落ちる不具合があったので機能停止．
 //
 // 最近の進捗
-// ・脚を動かしたときの標本点の不自然な割れを解消．
-// ・ボーンごとに影響範囲を変更．
-// ・フルスクリーン上のマウスクリックで入れ替え．
+// ・カラー表示できるようにした．
+// ・背景を表示できるようにした．
+// ・コードの一部分割に成功（transformation.cpp）
 //
 // 以下の機能はまだ開発中
-// ・基本姿勢ガイド(済)
+// ・基本姿勢ガイド
 // ・複数人の基本姿勢を認識したら自動で入れ替え
 //
 // TODO
@@ -54,6 +57,7 @@
 
 #include "hoge.h"
 #include "transformation.h"
+#include "Bone.h"
 //////////////////////////////////////////////////
 
 
@@ -1030,6 +1034,14 @@ public:
 				continue;
 			}
 
+			// この辺テスト
+			Bone testbones;
+			testbones.define_bone_connect(testbones.bone_connect);
+			testbones.set_bones_data(bodies[body]);
+			//
+
+			//ここから関数化したい
+			/////////////////////////////////////////////////////////////
 			//すべてのボーンについて繰り返し処理 // 二重ループを解消できる？
 			for (int i = 0; i < BONES; i++){
 
@@ -1055,6 +1067,8 @@ public:
 
 				//printf("%d %f %f\n", i, bone_data[body][i].bottom.x(), bone_data[body][i].top.x());
 			}
+			////////////////////////////////////////////////////////////
+			//ここまで関数化したい
 
 			// ポーズ認識
 			//check_base_posture(bone_data[body]);
@@ -1796,14 +1810,6 @@ public:
 	}
 	*/
 
-	// スケーリング(しっぱい)
-	void transrate_mod(Eigen::Matrix4f &mat, const Eigen::Vector4f &t, float height_ratio){
-
-		mat = Eigen::Matrix4f::Identity();
-		mat.col(3) << t.x()*height_ratio, t.y()*height_ratio, t.z()*height_ratio, 1.0;
-
-		return;
-	}
 
 	// 基本のポーズであるかをチェックする
 	bool check_base_posture(BONE_DATA *bone_data){
@@ -1920,7 +1926,6 @@ void bluetooth_conect(){
 	dcb.StopBits = ONESTOPBIT;
 
 	return;
-
 }
 
 int main(int argc, char *argv[])

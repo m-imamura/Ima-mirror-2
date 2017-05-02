@@ -155,15 +155,6 @@ points human::get_translate_body(bone actor_bone){
 			//デプス画像に点を描画
 			//depthImage.data[new_index] = 255;//points_data1.points[j].z;
 
-			// 円の大きさを決める
-			int ellipse_r = 100 / (100 * camera_point.Z);
-			if (ellipse_r < 3){
-				ellipse_r = 3;
-			}
-			else if (ellipse_r > 8){
-				ellipse_r = 8;
-			}
-
 			//フルスクリーンへの円描画
 			drawEllipse_fullScreen(Imamirror2_full, camera_point, ellipse_r, points_data[shape].color[p],
 				full_layout.magnification, full_layout.margin_x, full_layout.margin_y);
