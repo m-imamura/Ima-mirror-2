@@ -53,6 +53,7 @@
 #include <time.h> // 現時刻の表示用
 
 #include "hoge.h"
+#include "transformation.h"
 //////////////////////////////////////////////////
 
 
@@ -216,6 +217,10 @@ private:
 
 	// 他者と入れ替え可自分と入れ替えか
 	bool partner_change = true;
+	// カラーか白黒か．
+	bool color_view_tf = false;
+	// 背景あるなし
+	bool background_tf = false;
 
 	// 背景を保存するMat
 	std::vector<BYTE> backgroundBuffer; // std::vector<BYTE> colorBuffer; と同じ
@@ -251,9 +256,9 @@ public:
 			if (key == 'q') {
 				break;
 			}
-			if (key == 'c'){ // バーの位置を変える
+			/*if (key == 'c'){ // バーの位置を変える
 				ObjectAppearChange();
-			}
+			}*/
 			//if (key == 'e'){ // ただの区切り入れ
 			//	std::cout << "-----one paturn experiment end------\n";
 			//}
@@ -261,10 +266,37 @@ public:
 				partner_or_own();
 			}
 			if (key == 'b'){
-				backgroundBuffer = colorBuffer; // カラーバッファーの取得
-				background_depthBuffer = depthBuffer; // デプスバッファーの取得
-				get_background = true;
-				std::cout << "背景を取得";
+				//if (get_background == false){
+					backgroundBuffer = colorBuffer; // カラーバッファーの取得
+					background_depthBuffer = depthBuffer; // デプスバッファーの取得
+					get_background = true;
+					std::cout << "背景を取得\n";
+				//}
+				//else{
+				//	get_background = false;
+				//}
+			}
+			if (key == 'v'){
+				if (get_background){ // 一回でも背景取得していないと無効
+					if (background_tf){
+						background_tf = false;
+						std::cout << "背景を非表示\n";
+					}
+					else{
+						background_tf = true;
+						std::cout << "背景を表示\n";
+					}
+				}
+			}
+			if (key == 'c'){
+				if (color_view_tf){
+					color_view_tf = false;
+					std::cout << "人物白表示\n";
+				}
+				else{
+					color_view_tf = true;
+					std::cout << "人物カラー表示\n";
+				}
 			}
 		}
 	}
@@ -718,7 +750,7 @@ public:
 						int y = i / bodyIndexWidth;
 
 						// Depth座標系の点群をCamera座標系の点群に変換して配置
-						if (points_num < POINTS_MAX && x % 3 == 0 && y % 2 == 0){
+						if (points_num < POINTS_MAX && x % 3 == 0 && y % 3 == 0){
 
 							// 初期状態出力画面に通常出力
 
@@ -1096,9 +1128,9 @@ public:
 					continue;
 				}
 
+				/*
 				// ここにガイド画像表示処理
 				// 画像を貼る
-				// ガイド画像を張り付ける(テスト段階)
 				/////////////////////////////////////////////////////////////////////////////////////
 
 				// actorの頭の位置と身長を求める
@@ -1142,7 +1174,7 @@ public:
 				guide_paste_x = full_layout.margin_x + head_depth_point.X * full_layout.magnification - base_posture_src.cols*dst_resize / 2;
 
 				// ここでフルスクリーン画面を超えないようにbase_posture_dstのサイズを調整する
-				if (guide_paset_y + base_posture_src.rows*dst_resize > full_layout.DisplayHeight + full_layout.margin_y){
+				if (guide_paset_y + base_posture_src.rows*dst_resize > full_layout.DisplayHeight + full_layout.margin_y ){
 					std::cout << "yとびでる\n";
 					
 					// 表示位置を調整するパターン
@@ -1154,7 +1186,7 @@ public:
 					dst_resize = new_dst_resize;
 
 				}
-				if (guide_paste_x + base_posture_src.cols*dst_resize > full_layout.DisplayWidth + full_layout.margin_x){
+				if (guide_paste_x + base_posture_src.cols*dst_resize > full_layout.DisplayWidth + full_layout.margin_x ){
 					std::cout << "xとびでる\n";
 
 					// 表示位置を調整するパターン
@@ -1178,7 +1210,7 @@ public:
 				//関心領域roi_fullscにbase_posture_dstを貼りつける．
 				base_posture_dst.copyTo(roi_fullsc);
 				/////////////////////////////////////////////////////////////////////////////////////
-
+				*/
 
 				// 以下にスケルトン表示を描く
 				//std::cout << body <<"  " << shape_actor[body].shape << "\n";
@@ -1192,8 +1224,8 @@ public:
 					cam_bone_top.Y = bone_data[body][b].top.y();
 					cam_bone_top.Z = bone_data[body][b].top.z();
 
-					drawEllipse_fullScreen(Imamirror2_full, cam_bone_bottom, 10, cv::Scalar(255, 255, 255), full_layout.magnification, full_layout.margin_x, full_layout.margin_y);
-					drawEllipse_fullScreen(Imamirror2_full, cam_bone_top, 10, cv::Scalar(255, 255, 255), full_layout.magnification, full_layout.margin_x, full_layout.margin_y);
+					drawEllipse_fullScreen(Imamirror2_full, cam_bone_bottom, 6, cv::Scalar(255, 255, 255), full_layout.magnification, full_layout.margin_x, full_layout.margin_y);
+					drawEllipse_fullScreen(Imamirror2_full, cam_bone_top, 6, cv::Scalar(255, 255, 255), full_layout.magnification, full_layout.margin_x, full_layout.margin_y);
 				}
 			}
 		}
@@ -1353,9 +1385,11 @@ public:
 							// 基本のベクトル
 							Eigen::Vector4f unit_vector(0.0, 0.0, 1.0, 1.0);
 
+							transformation trans;
+
 							// 行列 M の部分を求める
-							transrate(M_transrate, bone_data[shape][b].bottom_init);
-							rotate(M_rotate, unit_vector, bone_data[shape][b].vector_init);
+							trans.transrate(M_transrate, bone_data[shape][b].bottom_init);
+							trans.rotate(M_rotate, unit_vector, bone_data[shape][b].vector_init);
 
 							// 初期ボーンのノルムを求める
 							float vi_norm = bone_data[shape][b].vector_init.norm();
@@ -1365,8 +1399,8 @@ public:
 							M_inverse = M_matrix.inverse();//(1/vi_norm) * M_rotate * M_transrate;
 
 							// 行列 B の部分を求める
-							rotate(B_rotate, unit_vector, bone_data[actor][b].vector);
-							transrate(B_transrate, new_bottom[b]);
+							trans.rotate(B_rotate, unit_vector, bone_data[actor][b].vector);
+							trans.transrate(B_transrate, new_bottom[b]);
 
 							// 変換後ボーンのノルムを求める
 							float v_norm = bone_data[actor][b].vector.norm();
@@ -1407,7 +1441,7 @@ public:
 						
 						//デプス画像に点を描画
 						depthImage.data[new_index] = 255;//points_data1.points[j].z;
-
+						/*
 						// 円の大きさを決める
 						int ellipse_r = 100/(100*camera_point.Z);
 						if (ellipse_r < 3){
@@ -1415,10 +1449,19 @@ public:
 						}
 						else if (ellipse_r > 8){
 							ellipse_r = 8;
-						}
+						}*/
 
 						//フルスクリーンへの円描画
-						drawEllipse_fullScreen(Imamirror2_full, camera_point, ellipse_r, points_data[shape].color[p],
+						// カラー円か白円か
+						cv::Scalar full_paint_color;
+						if (color_view_tf){
+							full_paint_color = points_data[shape].color[p];
+						}
+						else{
+							full_paint_color = cv::Scalar(255, 255, 255);
+						}
+
+						drawEllipse_fullScreen(Imamirror2_full, camera_point, 3, full_paint_color,
 							full_layout.magnification, full_layout.margin_x, full_layout.margin_y);
 					}
 					// ↑もうちょっと簡単に書けるはずだから余裕があったら見る
@@ -1544,51 +1587,61 @@ public:
 
 	void drawBackground(cv::Mat campus){
 
-		if (get_background){
+		if (background_tf){
 			//////////////////////////////////////////////////////////////////////////////////////////////////////////
 			// 背景を描画する
 			// 背景をMatに描画する関数にしたい．あとは張り付けるだけでオッケーにしたい
 
 			std::vector<ColorSpacePoint> colorSpace(depthWidth * depthHeight);
+
 			// Depth座標系に対応するColor座標系の一覧を取得する
 			CComPtr<ICoordinateMapper> mapper;
 			ERROR_CHECK(kinect->get_CoordinateMapper(&mapper));
 			mapper->MapDepthFrameToColorSpace(background_depthBuffer.size(), &background_depthBuffer[0], colorSpace.size(), &colorSpace[0]);
 
 			for (int i = 0; i < depthHeight * depthWidth; i++){ // 背景をつける
+				if (i % 4 == 0){
+					DepthSpacePoint depth_point; //Depth座標系の点
+					depth_point.X = i % depthWidth; //Depth画像上のxを代入
+					depth_point.Y = i / depthWidth; //Depth画像上のyを代入
 
-				DepthSpacePoint depth_point; //Depth座標系の点
-				depth_point.X = i % depthWidth; //Depth画像上のxを代入
-				depth_point.Y = i / depthWidth; //Depth画像上のyを代入
+					ColorSpacePoint color_point; //Color座標系の点
+					//mapper->MapDepthPointToColorSpace(depth_point, depthBuffer[i], &color_point);
+					mapper->MapDepthPointToColorSpace(depth_point, background_depthBuffer[i], &color_point);
+					// ↑mapperが知的．depthBufferの深度によってカラーのマッピング位置を決めている．単純な引き延ばしではない．
 
-				ColorSpacePoint color_point; //Color座標系の点
-				//mapper->MapDepthPointToColorSpace(depth_point, depthBuffer[i], &color_point);
-				mapper->MapDepthPointToColorSpace(depth_point, background_depthBuffer[i], &color_point);
-				// ↑mapperが知的．depthBufferの深度によってカラーのマッピング位置を決めている．単純な引き延ばしではない．
+					// colorSpaceのインデックスを求める
+					int colorX = (int)color_point.X;
+					int colorY = (int)color_point.Y;
+					if ((colorX < 0) || (colorWidth <= colorX) || (colorY < 0) || (colorHeight <= colorY)){
+						continue;
+					}
 
-				// colorSpaceのインデックスを求める
-				int colorX = (int)color_point.X;
-				int colorY = (int)color_point.Y;
-				if ((colorX < 0) || (colorWidth <= colorX) || (colorY < 0) || (colorHeight <= colorY)){
-					continue;
+					int colorIndex = (colorY * colorWidth) + colorX;
+
+					int colorBufferIndex = colorIndex * colorBytesPerPixel;
+
+					cv::Scalar color_point_color = cv::Scalar(backgroundBuffer[colorBufferIndex], backgroundBuffer[colorBufferIndex + 1], backgroundBuffer[colorBufferIndex + 2]);
+
+					int fullsc_x = full_layout.magnification*(i % depthWidth) + full_layout.margin_x;
+					int fullsc_y = full_layout.magnification*(i / depthWidth) + full_layout.margin_y;
+
+
+					campus.at<cv::Vec3b>(fullsc_y, fullsc_x)[0] = backgroundBuffer[colorBufferIndex];
+					campus.at<cv::Vec3b>(fullsc_y, fullsc_x)[1] = backgroundBuffer[colorBufferIndex + 1];
+					campus.at<cv::Vec3b>(fullsc_y, fullsc_x)[2] = backgroundBuffer[colorBufferIndex + 2];
+
+
+					// フルスクリーン座標に変換
+					cv::Point fullScreenPoint;
+					fullScreenPoint.x = fullsc_x;
+					fullScreenPoint.y = fullsc_y;
+
+					cv::circle(campus, fullScreenPoint, 5, color_point_color, -1);
+
 				}
-
-				int colorIndex = (colorY * colorWidth) + colorX;
-
-				int colorBufferIndex = colorIndex * colorBytesPerPixel;
-
-				cv::Scalar color_point_color = cv::Scalar(backgroundBuffer[colorBufferIndex], backgroundBuffer[colorBufferIndex + 1], backgroundBuffer[colorBufferIndex + 2]);
-
-				int fullsc_x = full_layout.magnification*(i % depthWidth) + full_layout.margin_x;
-				int fullsc_y = full_layout.magnification*(i / depthWidth) + full_layout.margin_y;
-
-
-				campus.at<cv::Vec3b>(fullsc_y, fullsc_x)[0] = backgroundBuffer[colorBufferIndex];
-				campus.at<cv::Vec3b>(fullsc_y, fullsc_x)[1] = backgroundBuffer[colorBufferIndex + 1];
-				campus.at<cv::Vec3b>(fullsc_y, fullsc_x)[2] = backgroundBuffer[colorBufferIndex + 2];
-
+				//////////////////////////////////////////////////////////////////////////////////////////////////////////
 			}
-			//////////////////////////////////////////////////////////////////////////////////////////////////////////
 		}
 	}
 
@@ -1699,7 +1752,8 @@ public:
 
 		cv::circle(bodyImage, fullScreenPoint, r, color, -1);
 	}
-
+	
+	/*
 	// 平行移動行列を計算 (計算される行列，平行移動ベクトル)
 	void transrate(Eigen::Matrix4f &mat, const Eigen::Vector4f &t){
 
@@ -1740,6 +1794,7 @@ public:
 
 		return;
 	}
+	*/
 
 	// スケーリング(しっぱい)
 	void transrate_mod(Eigen::Matrix4f &mat, const Eigen::Vector4f &t, float height_ratio){

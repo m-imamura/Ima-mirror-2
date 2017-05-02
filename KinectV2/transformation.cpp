@@ -1,4 +1,4 @@
-/*
+
 #include <stdio.h>
 #include <Eigen/Core>		// 線形代数ライブラリ
 #include <Eigen/Geometry>	// 外積の計算に必要
@@ -12,7 +12,7 @@ public:
 };
 
 // 平行移動行列を計算 (計算される行列，平行移動ベクトル)
-void transrate(Eigen::Matrix4f &mat, const Eigen::Vector4f &t){
+void transformation::transrate(Eigen::Matrix4f &mat, const Eigen::Vector4f &t){
 
 	mat = Eigen::Matrix4f::Identity();
 	mat.col(3) << t.x(), t.y(), t.z(), 1.0;
@@ -21,7 +21,7 @@ void transrate(Eigen::Matrix4f &mat, const Eigen::Vector4f &t){
 }
 
 // 回転移動行列を計算 (計算される行列，回転元のベクトル，回転後のベクトル)
-void rotate(Eigen::Matrix4f &mat, const Eigen::Vector4f &u, const Eigen::Vector4f &v){
+void transformation::rotate(Eigen::Matrix4f &mat, const Eigen::Vector4f &u, const Eigen::Vector4f &v){
 
 	// Vector4f の u, v の x，y，z 要素を切り出す
 	Eigen::Vector3f u_v3, v_v3;
@@ -51,4 +51,3 @@ void rotate(Eigen::Matrix4f &mat, const Eigen::Vector4f &u, const Eigen::Vector4
 
 	return;
 }
-*/
