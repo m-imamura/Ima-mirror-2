@@ -59,6 +59,8 @@
 #include "transformation.h"
 #include "Bone.h"
 #include "points.h"
+#include "draw_ellipse.h"
+#include "fullscreen_layout.h"
 //////////////////////////////////////////////////
 
 
@@ -135,6 +137,7 @@ IMPACT_RANGE impact_range;
 
 
 FULLSCREEN_LAYOUT full_layout;
+Fullscreen_Layout full_layout_test;
 //////////////////////////////////////////////////
 
 // グローバル変数
@@ -574,6 +577,8 @@ public:
 
 		// フルスクリーン設定
 		full_layout = fullScreen_layout_set(depthWidth, depthHeight);
+
+		full_layout_test.set_fullscreen_layout(depthWidth, depthHeight);
 
 	}
 
@@ -1513,8 +1518,12 @@ public:
 							full_paint_color = cv::Scalar(255, 255, 255);
 						}
 
-						drawEllipse_fullScreen(Imamirror2_full, camera_point, 3, full_paint_color,
-							full_layout.magnification, full_layout.margin_x, full_layout.margin_y);
+						DrawEllipse draw_ellipse;
+						draw_ellipse.drawEllipse_fullScreen(kinect, Imamirror2_full, camera_point, 3, full_paint_color,
+							full_layout_test.magnification, full_layout_test.margin_x, full_layout_test.margin_y);
+
+						//drawEllipse_fullScreen(Imamirror2_full, camera_point, 3, full_paint_color,
+						//	full_layout.magnification, full_layout.margin_x, full_layout.margin_y);
 					}
 					// ↑もうちょっと簡単に書けるはずだから余裕があったら見る
 
@@ -1764,7 +1773,7 @@ public:
 
 		cv::circle(bodyImage, cv::Point(point.X, point.Y), r, color, -1);
 	}
-
+	
 	// フルスクリーン用のdrawWllipse
 	void drawEllipse_fullScreen(
 		cv::Mat &bodyImage,

@@ -19,7 +19,7 @@ public:
 	Eigen::Vector4f top[BONES];		//逐次位置
 	Eigen::Vector4f bottom[BONES];		//逐次位置
 	Eigen::Vector4f vector[BONES];		//逐次方向 (bottom -> top)
-	int parent[BONES];					//親ボーン (使ってない？)
+	int parent[BONES];					//親ボーン
 	float length[BONES];				//長さ (vector_initの)
 
 	class Bone_connect{ // ボーン１本分の接続関係
@@ -35,9 +35,9 @@ public:
 	// 関数
 	// コンストラクタ
 	Bone::Bone(){
-		printf("Boneクラスのコンストラクタに入った"); // 入っていない
+		printf("Boneクラスのコンストラクタに入った"); // 入っていない 呼び出しもとでnewするといけるらしい．
 		// ボーンの接続関係を定義する．
-		//define_bone_connect(bone_connect); // ←できないっぽい．考える．
+		//define_bone_connect(bone_connect); // ←できないっぽい?考える．
 	}
 
 	// ジョイントポジションをもらってボーン情報（自前）を更新する関数
@@ -45,7 +45,6 @@ public:
 	// ボーンの接続関係を定義する関数（インスタンス時に自動で呼ばれる↓）
 	void define_bone_connect(Bone_connect bone_connect[BONES]);
 };
-
 
 
 void Bone::set_bones_data(IBody* body){ // bodies[6]の１体分をもらってきているIBodyのbody

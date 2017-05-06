@@ -1,4 +1,3 @@
-
 /*
 #include <stdio.h>
 #include <opencv2\opencv.hpp>
@@ -7,20 +6,14 @@
 class Background{
 private:
 
-
 public:
-	void drawBackground(cv::Mat campus);// ”wŒi‚ğ•`‰æ‚·‚é
+	cv::Mat drawBackground(cv::Mat campus);// ”wŒi‚ğ•`‰æ‚·‚é
 
-	Background(){//ƒRƒ“ƒXƒgƒ‰ƒNƒ^
-		
-	}
 };
 
-
-void drawBackground(cv::Mat campus){
+// campus‚ğó‚¯æ‚Á‚Ä”wŒi‚ğ‚Â‚¯‚Ä•Ô‚·
+cv::Mat Background::drawBackground(cv::Mat campus){
 	
-	// ”wŒi‚ğMat‚É•`‰æ‚·‚éŠÖ”‚É‚µ‚½‚¢D‚ ‚Æ‚Í’£‚è•t‚¯‚é‚¾‚¯‚ÅƒIƒbƒP[‚É‚µ‚½‚¢
-
 	std::vector<ColorSpacePoint> colorSpace(depthWidth * depthHeight);
 
 	// DepthÀ•WŒn‚É‘Î‰‚·‚éColorÀ•WŒn‚Ìˆê——‚ğæ“¾‚·‚é

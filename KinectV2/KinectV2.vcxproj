@@ -86,6 +86,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="background.cpp" />
+    <ClCompile Include="draw_ellipse.cpp" />
+    <ClCompile Include="fullscreen_layout.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="hoge.cpp" />
     <ClCompile Include="bone.cpp" />
@@ -99,6 +101,8 @@
   <ItemGroup>
     <ClInclude Include="bone.h" />
     <ClInclude Include="ComPtr.h" />
+    <ClInclude Include="draw_ellipse.h" />
+    <ClInclude Include="fullscreen_layout.h" />
     <ClInclude Include="transformation.h" />
     <ClInclude Include="points.h" />
     <ClInclude Include="hoge.h" />
