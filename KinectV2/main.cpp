@@ -58,6 +58,7 @@
 #include "hoge.h"
 #include "transformation.h"
 #include "Bone.h"
+#include "points.h"
 //////////////////////////////////////////////////
 
 
@@ -65,7 +66,7 @@
 //////////////////////////////////////////////////
 #define BONES 24			// 人体のボーンの数
 #define JOINTS 25			// ジョイントの数
-#define POINTS_MAX 30000	// 描画する点群の数
+#define POINTS_MAX 3000		// 描画する点群の数
 #define PEOPLE 6			// 人数
 //////////////////////////////////////////////////
 
@@ -194,6 +195,8 @@ private:
 
 	// Color関連
 	CComPtr<IColorFrameReader> colorFrameReader = nullptr;
+	// 表示部分
+	std::vector<BYTE> colorBuffer;
 
 	int colorWidth;
 	int colorHeight;
@@ -201,8 +204,6 @@ private:
 
 	ColorImageFormat colorFormat = ColorImageFormat::ColorImageFormat_Bgra;
 
-	// 表示部分
-	std::vector<BYTE> colorBuffer;
 
 
 	//
@@ -366,16 +367,7 @@ public:
 		// バッファーを作成する
 		bodyIndexBuffer.resize(bodyIndexWidth * bodyIndexHeight);
 
-		// プレイヤーの色を設定する
-		/*
-		colors[0] = cv::Scalar(255, 0, 0);
-		colors[1] = cv::Scalar(0, 255, 0);
-		colors[2] = cv::Scalar(0, 0, 255);
-		colors[3] = cv::Scalar(255, 255, 0);
-		colors[4] = cv::Scalar(255, 0, 255);
-		colors[5] = cv::Scalar(0, 255, 255);*/
-
-		//グレースケール版
+		// プレイヤーのindex色を設定する
 		colors[0] = cv::Scalar(255, 255, 255);
 		colors[1] = cv::Scalar(234, 234, 234);
 		colors[2] = cv::Scalar(231, 213, 213);
@@ -383,7 +375,7 @@ public:
 		colors[4] = cv::Scalar(171, 171, 171);
 		colors[5] = cv::Scalar(150, 150, 150);
 
-		// 振動提示プレイヤーの色
+		// 振動提示プレイヤーのindex色
 		bib_player_color = cv::Scalar(255, 255, 0);
 		//////////////////////////////////////////////////
 
@@ -729,17 +721,21 @@ public:
 				CComPtr<ICoordinateMapper> mapper;
 				ERROR_CHECK(kinect->get_CoordinateMapper(&mapper));
 
-				/*
-				std::vector<BYTE> colorBuffer_change;// カラーバッファ―
-				colorBuffer_change.resize(colorWidth * colorHeight * colorBytesPerPixel);//カラーバッファーを作成する
-
-				mapper->MapDepthPointsToColorSpace(depthBuffer[0],)*/
-
 				// Depth座標系に対応するColor座標系の一覧を取得する
 				std::vector<ColorSpacePoint> colorSpace(depthWidth * depthHeight);
 				mapper->MapDepthFrameToColorSpace(depthBuffer.size(), &depthBuffer[0], colorSpace.size(), &colorSpace[0]);
 
-
+				
+				// ここら辺テスト
+				Points testpoints;
+				testpoints.set_players_index_color();
+				testpoints.set_points_data(0, mapper,
+					depthBuffer, depthWidth, depthHeight,
+					bodyIndexBuffer, bodyIndexWidth, bodyIndexHeight,
+					colorBuffer, colorWidth, colorHeight,
+					colorSpace, colorBytesPerPixel);
+				//
+				
 				// DepthFrameをなめながら身体の領域内に点群を配置
 				for (int i = 0; i < PEOPLE; i++){
 					points_data[i].points_num = 0;
@@ -795,15 +791,57 @@ public:
 									points_data[person].points_num++;
 								}
 							}
-							//points_num++;
 
 						}
 					}
 				}
 
+			}
 
 
-				//points_data1.points_num = points_num; // 配置した点群の数を記録
+			// ここから分割テスト
+			if (gotBody != -1) {
+
+				// 座標変換のためのICoordinateMapperインターフェースを取得
+				ICoordinateMapper* pCoordinateMapper;
+				HRESULT hResult = kinect->get_CoordinateMapper(&pCoordinateMapper);
+				if (FAILED(hResult)){
+					std::cerr << "Error : IKinectSensor::get_CoordinateMapper()" << std::endl;
+					return;
+				}
+
+				// 座標系返還のためのmapper
+				CComPtr<ICoordinateMapper> mapper;
+				ERROR_CHECK(kinect->get_CoordinateMapper(&mapper));
+
+				// Depth座標系に対応するColor座標系の一覧を取得する
+				std::vector<ColorSpacePoint> colorSpace(depthWidth * depthHeight);
+				mapper->MapDepthFrameToColorSpace(depthBuffer.size(), &depthBuffer[0], colorSpace.size(), &colorSpace[0]);
+
+
+				for (int person = 0; person < PEOPLE; person++){
+					// ここら辺テスト
+
+					// Bodyがなかったら終わり
+					if (bodies[person] == nullptr){
+						continue;
+					}
+
+					// 追跡できてなかったら終わり
+					BOOLEAN isTracked = false;
+					ERROR_CHECK(bodies[person]->get_IsTracked(&isTracked));
+					if (!isTracked) {
+						continue;
+					}
+
+					Points testpoints;
+					testpoints.set_players_index_color();
+					testpoints.set_points_data(person, mapper,
+					depthBuffer, depthWidth, depthHeight,
+					bodyIndexBuffer, bodyIndexWidth, bodyIndexHeight,
+					colorBuffer, colorWidth, colorHeight,
+					colorSpace, colorBytesPerPixel);
+				}
 			}
 
 

@@ -2,12 +2,15 @@
 
 #include <stdio.h>
 #include <Eigen/Core>		// 線形代数ライブラリ
+#include <Kinect.h>
 
 #define JOINTS 25			// ジョイントの数
 #define BONES 24			// 人体のボーンの数
 
 class Bone{
 private:
+
+public:
 	// ボーンの情報
 	Eigen::Vector4f top_init[BONES];	//初期位置
 	Eigen::Vector4f bottom_init[BONES];//初期位置
@@ -17,9 +20,6 @@ private:
 	Eigen::Vector4f vector[BONES];		//逐次方向 (bottom -> top)
 	int parent[BONES];					//親ボーン (使ってない？)
 	float length[BONES];				//長さ (vector_initの)
-
-
-public:
 
 	class Bone_connect{ // ボーン１本分の接続関係
 	private:
@@ -32,8 +32,7 @@ public:
 	};
 	Bone_connect bone_connect[BONES];
 
-	// 関数群
-
+	// 関数
 	// ジョイントポジションをもらってボーン情報（自前）を更新する関数
 	void set_bones_data(IBody* body);
 

@@ -1,33 +1,35 @@
 /*
 // Bone情報とpoints情報を持ったHumanクラス
 #include <stdio.h>
+#include <stdlib.h>
 #include <Kinect.h>
+#include <opencv2\opencv.hpp>
 
-#include "bone_setting.h"
 #include "bone.h"
 #include "points.h"
 #include "transformation.h"
 
 
-class human{
+class Human{
 private:
-	bone bones_data;
-	points points_data;
-	bone_setting bone_setting_data;
+	Bone bones_data;
+	Points points_data;
 	transformation trans;
+
+	
 
 public:
 	//  アクターの骨格情報で自分のpoints_dataを変換する根幹処理
-	points get_translate_body(bone actor_bone);
+	void get_translate_body(Bone actor_bone);
 };
 
-points human::get_translate_body(bone actor_bone){
+void Human::get_translate_body(Bone actor_bone){
 
 	// shapeの身体でactorの姿勢のときのbottomを計算
 	Eigen::Vector4f new_bottom[BONES];
 	for (int b = 0; b < BONES; b++){
 		new_bottom[b] << 0.0, 0.0, 0.0, 1.0;
-		int parent = bone_set[b].parent;
+		int parent = bones_data.bone_connect[b].parent;
 		if (parent == -1){
 			float y_diff = bone_data[actor][b].bottom_init.y() - bone_data[shape][b].bottom_init.y();
 			new_bottom[b] = bone_data[actor][b].bottom;
@@ -41,16 +43,14 @@ points human::get_translate_body(bone actor_bone){
 		}
 	}
 
+	/*
 	// new_bottomを描画
 	for (int b = 0; b < BONES; b++){
-		//mydrawEllipse(new_bone_bodyImage, new_bottom[b], 3, cv::Scalar(255, 255, 0));
+		mydrawEllipse(new_bone_bodyImage, new_bottom[b], 3, cv::Scalar(255, 255, 0));
 
-		// 親指，指先，つま先，頭の場合
-		//if (b == 3){
 		Eigen::Vector4f new_top;
 		new_top.segment(0, 3) = new_bottom[b].segment(0, 3) + bone_data[shape][b].length * bone_data[actor][b].vector.segment(0, 3).normalized();
-		//mydrawEllipse(new_bone_bodyImage, new_top, 3, cv::Scalar(255, 255, 0));
-		//}
+		mydrawEllipse(new_bone_bodyImage, new_top, 3, cv::Scalar(255, 255, 0));
 	}
 
 	// 点群の変換

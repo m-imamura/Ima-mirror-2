@@ -10,6 +10,8 @@
 
 class Bone{
 private:
+
+public:
 	// ボーンの情報
 	Eigen::Vector4f top_init[BONES];	//初期位置
 	Eigen::Vector4f bottom_init[BONES];//初期位置
@@ -19,8 +21,6 @@ private:
 	Eigen::Vector4f vector[BONES];		//逐次方向 (bottom -> top)
 	int parent[BONES];					//親ボーン (使ってない？)
 	float length[BONES];				//長さ (vector_initの)
-
-public:
 
 	class Bone_connect{ // ボーン１本分の接続関係
 	private:
@@ -32,24 +32,20 @@ public:
 	};
 	Bone_connect bone_connect[BONES];
 
-	// 関数群
+	// 関数
+	// コンストラクタ
+	Bone::Bone(){
+		printf("Boneクラスのコンストラクタに入った"); // 入っていない
+		// ボーンの接続関係を定義する．
+		//define_bone_connect(bone_connect); // ←できないっぽい．考える．
+	}
 
 	// ジョイントポジションをもらってボーン情報（自前）を更新する関数
 	void set_bones_data(IBody* body);
-
 	// ボーンの接続関係を定義する関数（インスタンス時に自動で呼ばれる↓）
 	void define_bone_connect(Bone_connect bone_connect[BONES]);
-	
-	
-	// コンストラクタ
-	Bone(){ 
-		printf("Boneクラスのコンストラクタに入った"); // 入っていない
-		// ボーンの接続関係を定義する．
-		// define_bone_connect(bone_connect);
-	}
-
-
 };
+
 
 
 void Bone::set_bones_data(IBody* body){ // bodies[6]の１体分をもらってきているIBodyのbody
@@ -79,8 +75,9 @@ void Bone::set_bones_data(IBody* body){ // bodies[6]の１体分をもらってきているIB
 		vector[i].segment(0, 3) = vector[i].segment(0, 3).normalized();
 	}
 
-	printf("腰ボーンのx位置 %f\n", bottom[0].x());
+	//printf("腰ボーンのx位置 %f\n", bottom[0].x());
 }
+
 
 void Bone::define_bone_connect(Bone::Bone_connect bone_connect[BONES]){
 	//体幹
@@ -197,6 +194,6 @@ void Bone::define_bone_connect(Bone::Bone_connect bone_connect[BONES]){
 
 	// テスト用出力
 	for (int i = 0; i < BONES; i++){
-		printf("ボーン %d : ボトム %d　トップ %d\n",i, bone_connect[i].bottom, bone_connect[i].top);
+	//	printf("ボーン %d : ボトム %d　トップ %d\n",i, bone_connect[i].bottom, bone_connect[i].top);
 	}
 }
