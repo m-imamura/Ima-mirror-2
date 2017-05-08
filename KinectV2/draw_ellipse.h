@@ -13,6 +13,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "fullscreen_layout.h"
+
+#pragma once
+
+
 class DrawEllipse{
 private:
 
@@ -24,13 +29,11 @@ public:
 		cv::Mat &campus,
 		CameraSpacePoint &cam_point,
 		int r, const cv::Scalar &color,
-		double magnification,
-		int margin_x, int margin_y);
+		FullscreenLayout full_layout);
 	void draw_circle(
 		CComPtr<IKinectSensor> kinect,
 		cv::Mat &bodyImage,
 		DepthSpacePoint depth_point,
 		int r, const cv::Scalar &color,
-		double magnification,
-		int margin_x, int margin_y);
+		FullscreenLayout full_layout);
 };

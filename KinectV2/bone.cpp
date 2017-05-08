@@ -1,9 +1,16 @@
-
 //ボーン1人分
+#include <iostream>
+#include <sstream>
 
-#include <stdio.h>
+#include <atlbase.h>
 #include <Eigen/Core>		// 線形代数ライブラリ
+#include <Eigen/Geometry>	// 外積の計算に必要
 #include <Kinect.h>
+#include <opencv2\opencv.hpp>
+
+#include <windows.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 #define JOINTS 25			// ジョイントの数
 #define BONES 24			// 人体のボーンの数
@@ -42,27 +49,66 @@ public:
 
 	// ジョイントポジションをもらってボーン情報（自前）を更新する関数
 	void set_bones_data(IBody* body);
+
+	// ジョイントポジションをもらって初期のボーン情報を格納する関数
+	void set_bones_init_data(IBody* body);
+
 	// ボーンの接続関係を定義する関数（インスタンス時に自動で呼ばれる↓）
 	void define_bone_connect(Bone_connect bone_connect[BONES]);
 };
 
+void Bone::set_bones_init_data(IBody* body){
 
-void Bone::set_bones_data(IBody* body){ // bodies[6]の１体分をもらってきているIBodyのbody
+	define_bone_connect(bone_connect);
 
 	Eigen::Vector4f joint_position[JOINTS]; //関節の位置
 
-	//すべてのボーンについて繰り返し処理 // 二重ループを解消できる？
+	// 関節の位置を取得
+	Joint joints[JointType::JointType_Count];
+	body->GetJoints(JointType::JointType_Count, joints);
+	for (auto joint : joints) {
+		printf("あああああ");
+		if (joint.TrackingState == TrackingState::TrackingState_Tracked) {
+			joint_position[joint.JointType] << joint.Position.X, joint.Position.Y, joint.Position.Z, 1.0;
+			//drawEllipse(init_bodyImage, joint, 3, cv::Scalar(255, 255, 255));
+		}
+	}
+
+	// Bodyがあればすべてのボーンについて繰り返し処理
 	for (int i = 0; i < BONES; i++){
 
-		// 関節の位置を取得
-		Joint joints[JointType::JointType_Count];
-		body->GetJoints(JointType::JointType_Count, joints);
-		for (auto joint : joints) {
-			if (joint.TrackingState == TrackingState::TrackingState_Tracked) {
-				//drawEllipse(bodyImage, joint, 3, cv::Scalar(255, 255, 255));
-				joint_position[joint.JointType] << joint.Position.X, joint.Position.Y, joint.Position.Z, 1.0;
-			}
+		// i番目のボーンのtop，bottomがどの関節かを求めて，関節の位置を入れる
+		bottom_init[i] = joint_position[bone_connect[i].bottom];
+		top_init[i] = joint_position[bone_connect[i].top];
+
+		// i番目のボーンのvector(ボーンの向き)をtop-bottomから求める
+		vector_init[i].segment(0, 3) = top_init[i].segment(0, 3) - bottom_init[i].segment(0, 3);
+		vector_init[i].w() = 1.0;
+
+		length[i] = vector_init[i].segment(0, 3).norm();
+		vector_init[i].segment(0, 3) = vector_init[i].segment(0, 3).normalized();
+	}
+}
+
+// ボーン情報の更新
+void Bone::set_bones_data(IBody* body){ // bodies[6]の１体分をもらってきているIBodyのbody
+
+	Eigen::Vector4f joint_position[JOINTS];
+	//joint_position = new Eigen::Vector4f[JOINTS]; //関節の位置
+
+	// 関節の位置を取得
+	Joint joints[JointType::JointType_Count];
+	body->GetJoints(JointType::JointType_Count, joints);
+	for (auto joint : joints) {
+		printf("あああああ");
+		if (joint.TrackingState == TrackingState::TrackingState_Tracked) {
+			//drawEllipse(bodyImage, joint, 3, cv::Scalar(255, 255, 255));
+			joint_position[joint.JointType] << joint.Position.X, joint.Position.Y, joint.Position.Z, 1.0;
 		}
+	}
+
+	//すべてのボーンについて繰り返し処理 // 二重ループを解消できる？
+	for (int i = 0; i < BONES; i++){
 
 		// i番目のボーンのtop，bottomがどの関節かを求めて，関節の位置を入れる
 		bottom[i] = joint_position[bone_connect[i].bottom];
@@ -75,10 +121,17 @@ void Bone::set_bones_data(IBody* body){ // bodies[6]の１体分をもらってきているIB
 	}
 
 	//printf("腰ボーンのx位置 %f\n", bottom[0].x());
+
+	//delete joint_position;
 }
 
 
 void Bone::define_bone_connect(Bone::Bone_connect bone_connect[BONES]){
+	
+	for (int i = 0; i < BONES; i++){
+		bone_connect[i].impactrange = 0.5;
+	}
+
 	//体幹
 	bone_connect[0].bottom = JointType_SpineBase;//根元のジョイントを設定
 	bone_connect[0].top = JointType_SpineMid;//先端のジョイントを設定

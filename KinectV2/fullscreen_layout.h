@@ -1,7 +1,14 @@
+#include <iostream>
+#include <sstream>
+#include <atlbase.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <opencv2\opencv.hpp>
+#include <windows.h>
 
-class Fullscreen_Layout{
+#pragma once
+
+class FullscreenLayout{
 private:
 
 public:

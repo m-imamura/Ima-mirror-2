@@ -1,8 +1,12 @@
+#include <iostream>
+#include <sstream>
+#include <atlbase.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <opencv2\opencv.hpp>
 #include <windows.h>
 
-class Fullscreen_Layout{
+class FullscreenLayout{
 private:
 
 public:	
@@ -17,7 +21,7 @@ public:
 
 
 // フルスクリーン表示設定
-void Fullscreen_Layout::set_fullscreen_layout(double depthWidth, double depthHeight){
+void FullscreenLayout::set_fullscreen_layout(double depthWidth, double depthHeight){
 
 	cv::Point fullScreen_first_pixel;
 	cv::Point fullScreen_last_pixel;
@@ -25,11 +29,9 @@ void Fullscreen_Layout::set_fullscreen_layout(double depthWidth, double depthHei
 	int In_display_height;// ディスプレイ中のイマミラーの画面の高さ
 
 	// ディスプレイサイズ取得
-	int DisplayWidth = GetSystemMetrics(SM_CXSCREEN);
-	int DisplayHeight = GetSystemMetrics(SM_CYSCREEN);
+	DisplayWidth = GetSystemMetrics(SM_CXSCREEN);
+	DisplayHeight = GetSystemMetrics(SM_CYSCREEN);
 
-	DisplayWidth = DisplayWidth;
-	DisplayHeight = DisplayHeight;
 
 	if ((double)DisplayWidth / (double)DisplayHeight > (double)depthWidth / (double)depthHeight){ // ディスプレイが横長．たぶんこの確率が高い
 		In_display_width = (double)DisplayHeight * ((double)depthWidth / (double)depthHeight);

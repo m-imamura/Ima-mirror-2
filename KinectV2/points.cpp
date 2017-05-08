@@ -16,6 +16,15 @@
 #define POINTS_MAX 10000	// 描画する点群の数
 #define PEOPLE 6			// 人数
 
+// 書籍での解説のためにマクロにしています。実際には展開した形で使うことを検討してください。
+#define ERROR_CHECK(ret) \
+if ((ret) != S_OK) { \
+	std::stringstream ss; \
+	ss << "failed " #ret " " << std::hex << ret << std::endl; \
+	throw std::runtime_error(ss.str().c_str()); \
+}
+//////////////////////////////////////////////////
+
 class Points{
 private:
 
@@ -35,11 +44,10 @@ public:
 	void set_players_index_color();
 
 	// getinitしたときのデータをもらって保存しておく関数
-	void set_points_data(int person, ICoordinateMapper* mapper,
+	void set_points_data(CComPtr<IKinectSensor> kinect, int person,
 		std::vector<UINT16> depthBuffer, int depthWidth, int depthHeight,
 		std::vector<BYTE> bodyIndexBuffer, int bodyIndexWidth, int bodyIndexHeight,
 		std::vector<BYTE> colorBuffer, int colorWidth, int colorHeight,
-		std::vector<ColorSpacePoint> colorSpace,
 		unsigned int colorBytesPerPixel);
 };
 
@@ -61,12 +69,13 @@ void Points::set_players_index_color(){
 	index_colors[5] = cv::Scalar(150, 150, 150);
 }
 
-void Points::set_points_data(int person, ICoordinateMapper* mapper,
+void Points::set_points_data(CComPtr<IKinectSensor> kinect, int person, 
 	std::vector<UINT16> depthBuffer, int depthWidth, int depthHeight,
 	std::vector<BYTE> bodyIndexBuffer, int bodyIndexWidth, int bodyIndexHeight,
 	std::vector<BYTE> colorBuffer, int colorWidth, int colorHeight,
-	std::vector<ColorSpacePoint> colorSpace,
 	unsigned int colorBytesPerPixel){
+
+	set_players_index_color();
 
 	// 表示用画面
 	cv::Mat points_Image = cv::Mat::zeros(depthHeight, depthWidth, CV_8UC4);
@@ -77,8 +86,25 @@ void Points::set_points_data(int person, ICoordinateMapper* mapper,
 	color = new cv::Scalar[POINTS_MAX];
 
 	body_num = person; // 外部から与えられたボディ番号を自分のボディ番号とする． 
+
+	// mapper処理
+	// 座標変換のためのICoordinateMapperインターフェースを取得
+	ICoordinateMapper* pCoordinateMapper;
+	HRESULT hResult = kinect->get_CoordinateMapper(&pCoordinateMapper);
+	if (FAILED(hResult)){
+		std::cerr << "Error : IKinectSensor::get_CoordinateMapper()" << std::endl;
+		return;
+	}
+
+	// 座標系返還のためのmapper
+	CComPtr<ICoordinateMapper> mapper;
+	ERROR_CHECK(kinect->get_CoordinateMapper(&mapper));
+
+	// Depth座標系に対応するColor座標系の一覧を取得する
+	std::vector<ColorSpacePoint> colorSpace(depthWidth * depthHeight);
+	mapper->MapDepthFrameToColorSpace(depthBuffer.size(), &depthBuffer[0], colorSpace.size(), &colorSpace[0]);
+	// mapper処理ここまで
 	
-	// mapperの部分は外で．
 	points_num = 0;
 	// DepthFrameをなめながら身体の領域内に点群を配置
 	for (int i = 0; i < bodyIndexWidth * bodyIndexHeight; i++)
@@ -124,6 +150,6 @@ void Points::set_points_data(int person, ICoordinateMapper* mapper,
 		}
 	}
 	std::cout << "body_num " <<body_num << ": Points_num " << points_num << "\n";
-
-	cv::imshow("Points_Image", points_Image);
+	
+	cv::imshow("Points_Image"+body_num, points_Image);
 }

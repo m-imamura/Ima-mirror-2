@@ -13,6 +13,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "fullscreen_layout.h"
+
 // 書籍での解説のためにマクロにしています。実際には展開した形で使うことを検討してください。
 #define ERROR_CHECK(ret) \
 	if ((ret) != S_OK) { \
@@ -33,15 +35,13 @@ public:
 		cv::Mat &campus,
 		CameraSpacePoint &cam_point,
 		int r, const cv::Scalar &color,
-		double magnification,
-		int margin_x, int margin_y);
+		FullscreenLayout full_layout);
 	void draw_circle(
 		CComPtr<IKinectSensor> kinect,
 		cv::Mat &bodyImage,
 		DepthSpacePoint depth_point,
 		int r, const cv::Scalar &color,
-		double magnification,
-		int margin_x, int margin_y);
+		FullscreenLayout full_layout);
 };
 
 
@@ -81,8 +81,7 @@ void DrawEllipse::drawEllipse_fullScreen(
 	cv::Mat &campus,
 	CameraSpacePoint &cam_point,
 	int r, const cv::Scalar &color,
-	double magnification,
-	int margin_x, int margin_y)
+	FullscreenLayout full_layout)
 {
 	// Camera座標系をDepth座標系に変換する
 	CComPtr<ICoordinateMapper> mapper;
@@ -95,8 +94,8 @@ void DrawEllipse::drawEllipse_fullScreen(
 
 	// フルスクリーン座標に変換
 	cv::Point fullScreenPoint;
-	fullScreenPoint.x = (int)((double)point.X*magnification + margin_x);
-	fullScreenPoint.y = point.Y*magnification + margin_y;
+	fullScreenPoint.x = (int)((double)point.X*full_layout.magnification + full_layout.margin_x);
+	fullScreenPoint.y = point.Y*full_layout.magnification + full_layout.margin_y;
 
 	cv::circle(campus, fullScreenPoint, r, color, -1);
 }
@@ -106,13 +105,12 @@ void DrawEllipse::draw_circle(
 	cv::Mat &bodyImage,
 	DepthSpacePoint depth_point,
 	int r, const cv::Scalar &color,
-	double magnification,
-	int margin_x, int margin_y){
+	FullscreenLayout full_layout){
 
 	// フルスクリーン座標に変換
 	cv::Point fullScreenPoint;
-	fullScreenPoint.x = depth_point.X*magnification + margin_x;
-	fullScreenPoint.y = depth_point.Y*magnification + margin_y;
+	fullScreenPoint.x = depth_point.X*full_layout.magnification + full_layout.margin_x;
+	fullScreenPoint.y = depth_point.Y*full_layout.magnification + full_layout.margin_y;
 
 	cv::circle(bodyImage, fullScreenPoint, r, color, -1);
 }

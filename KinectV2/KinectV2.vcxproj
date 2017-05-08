@@ -89,10 +89,12 @@
     <ClCompile Include="draw_ellipse.cpp" />
     <ClCompile Include="fullscreen_layout.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="main_tmp.cpp" />
     <ClCompile Include="hoge.cpp" />
     <ClCompile Include="bone.cpp" />
     <ClCompile Include="points.cpp" />
     <ClCompile Include="human.cpp" />
+    <ClCompile Include="shape_actor.cpp" />
     <ClCompile Include="transformation.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -103,6 +105,8 @@
     <ClInclude Include="ComPtr.h" />
     <ClInclude Include="draw_ellipse.h" />
     <ClInclude Include="fullscreen_layout.h" />
+    <ClInclude Include="Human.h" />
+    <ClInclude Include="shape_actor.h" />
     <ClInclude Include="transformation.h" />
     <ClInclude Include="points.h" />
     <ClInclude Include="hoge.h" />

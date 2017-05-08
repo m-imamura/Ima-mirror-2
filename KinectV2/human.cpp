@@ -1,5 +1,5 @@
 // Bone情報とpoints情報を持ったHumanクラス
-/*
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <Kinect.h>
@@ -9,6 +9,7 @@
 #include "points.h"
 #include "transformation.h"
 #include "draw_ellipse.h"
+#include "fullscreen_layout.h"
 
 
 // 書籍での解説のためにマクロにしています。実際には展開した形で使うことを検討してください。
@@ -18,53 +19,68 @@ if ((ret) != S_OK) { \
 	ss << "failed " #ret " " << std::hex << ret << std::endl; \
 	throw std::runtime_error(ss.str().c_str()); \
 }
-//////////////////////////////////////////////////
-
 
 class Human{
-private: 
+private:
 	Bone shape_bone;                 // メモリの動的確保がいるか？？
 	Bone actor_bone;
 	Points shape_points;
 	transformation trans;
 
 public:
+	
 	// データ入れ関数
 	void set_shape_bone(IBody* body);
 	void set_actor_bone(IBody* body);
-	void set_shape_points(int person, ICoordinateMapper* mapper,
+	void set_shape_points(CComPtr<IKinectSensor> kinect, int person,
 		std::vector<UINT16> depthBuffer, int depthWidth, int depthHeight,
 		std::vector<BYTE> bodyIndexBuffer, int bodyIndexWidth, int bodyIndexHeight,
 		std::vector<BYTE> colorBuffer, int colorWidth, int colorHeight,
-		std::vector<ColorSpacePoint> colorSpace,
 		unsigned int colorBytesPerPixel);
 
 	//  アクターの骨格情報で自分のpoints_dataを変換する根幹処理
-	cv::Mat get_translate_body(cv::Mat campus);
-};
+	cv::Mat get_translate_body(CComPtr<IKinectSensor> kinect, cv::Mat campus,
+		FullscreenLayout fullscreen_layout, int bodyWidth, int bodyHeight);
 
+	Human(){
+		// 動的割り当て
+		//shape_bone = new Bone;
+		//actor_bone = new Bone;
+		//shape_points = new Points;
+		//trans = new transformation;
+		
+		// shape_boneとactor_boneのボーンの接続関係を定義
+		std::cout << "// shape_boneとactor_boneのボーンの接続関係を定義";
+		shape_bone.define_bone_connect(shape_bone.bone_connect);
+		actor_bone.define_bone_connect(actor_bone.bone_connect);
+	}
+
+	~Human(){
+	}
+};
 
 
 // データ入れ関数（ただの横流しだけど）
 void Human::set_shape_bone(IBody* body){
-	shape_bone.set_bones_data(body);
+	shape_bone.set_bones_init_data(body);
 }
 void Human::set_actor_bone(IBody* body){
 	actor_bone.set_bones_data(body);
 }
-void Human::set_shape_points(int person, ICoordinateMapper* mapper,
+void Human::set_shape_points(CComPtr<IKinectSensor> kinect, int person,
 	std::vector<UINT16> depthBuffer, int depthWidth, int depthHeight,
 	std::vector<BYTE> bodyIndexBuffer, int bodyIndexWidth, int bodyIndexHeight,
 	std::vector<BYTE> colorBuffer, int colorWidth, int colorHeight,
-	std::vector<ColorSpacePoint> colorSpace,
 	unsigned int colorBytesPerPixel){
-	shape_points.set_points_data(person, mapper, depthBuffer, depthWidth, depthHeight,
+	
+	shape_points.set_points_data(kinect, person, depthBuffer, depthWidth, depthHeight,
 		bodyIndexBuffer, bodyIndexWidth, bodyIndexHeight, colorBuffer, colorWidth, colorHeight,
-		colorSpace, colorBytesPerPixel);
+		colorBytesPerPixel);
 }
 
 // campusを受け取って変換した体を載せてcampusを返す．
-cv::Mat Human::get_translate_body(CComPtr<IKinectSensor> kinect, cv::Mat campus, ){
+cv::Mat Human::get_translate_body(CComPtr<IKinectSensor> kinect, cv::Mat campus,
+	FullscreenLayout fullscreen_layout,int bodyIndexWidth, int bodyIndexHeight){
 
 	// shapeの身体でactorの姿勢のときのbottomを計算
 	Eigen::Vector4f new_bottom[BONES];
@@ -124,8 +140,9 @@ cv::Mat Human::get_translate_body(CComPtr<IKinectSensor> kinect, cv::Mat campus,
 			// ボーンの影響（重み）
 			Eigen::Matrix4f w_matrix;
 			//w_matrix << w, w, w, 1.0; // うまくいかない．放置．
-
-			if (d < v1.norm() * shape_bone.bone_connect[b].impactrange){ // ←ここで，ボーンごとに許容範囲を変えるとうまくいきそう？
+			
+			// ↓ここで，ボーンごとに許容範囲を変えるとうまくいきそう？
+			if (d < v1.norm() * shape_bone.bone_connect[b].impactrange){ 
 
 				// 変換行列の全体
 				Eigen::Matrix4f M_matrix;
@@ -198,10 +215,10 @@ cv::Mat Human::get_translate_body(CComPtr<IKinectSensor> kinect, cv::Mat campus,
 
 			//フルスクリーンへの円描画
 			DrawEllipse draw_ellipse;
-			draw_ellipse.drawEllipse_fullScreen(kinect, campus, camera_point, 5, shape_points.color[p],
-				full_layout.magnification, full_layout.margin_x, full_layout.margin_y);
+			draw_ellipse.drawEllipse_fullScreen(kinect, campus, camera_point, 5,
+				shape_points.color[p], fullscreen_layout);
 		}
 		// ↑もうちょっと簡単に書けるはずだから余裕があったら見る
 	}
 	return campus;
-}*/
+}

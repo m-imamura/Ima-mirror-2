@@ -1,6 +1,8 @@
 #include <Eigen/Core>		// 線形代数ライブラリ
 #include <Eigen/Geometry>	// 外積の計算に必要
 
+#pragma once
+
 class transformation{
 	private:
 

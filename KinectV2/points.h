@@ -13,6 +13,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#pragma once
+
 #define POINTS_MAX 10000	// 描画する点群の数
 #define PEOPLE 6			// 人数
 
@@ -35,10 +37,9 @@ public:
 	void set_players_index_color();
 
 	// getinitしたときのデータをもらって保存しておくかんじの関数
-	void set_points_data(int person, ICoordinateMapper* mapper,
+	void set_points_data(CComPtr<IKinectSensor> kinect, int person,
 		std::vector<UINT16> depthBuffer, int depthWidth, int depthHeight,
 		std::vector<BYTE> bodyIndexBuffer, int bodyIndexWidth, int bodyIndexHeight,
 		std::vector<BYTE> colorBuffer, int colorWidth, int colorHeight,
-		std::vector<ColorSpacePoint> colorSpace,
 		unsigned int colorBytesPerPixel);
 };
