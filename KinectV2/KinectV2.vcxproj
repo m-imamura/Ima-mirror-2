@@ -95,6 +95,7 @@
     <ClCompile Include="points.cpp" />
     <ClCompile Include="human.cpp" />
     <ClCompile Include="shape_actor.cpp" />
+    <ClCompile Include="test.cpp" />
     <ClCompile Include="transformation.cpp" />
   </ItemGroup>
   <ItemGroup>

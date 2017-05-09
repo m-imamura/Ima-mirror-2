@@ -13,8 +13,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#pragma once
-
 #define POINTS_MAX 10000	// 描画する点群の数
 #define PEOPLE 6			// 人数
 
@@ -25,18 +23,18 @@ private:
 
 public:
 	// 変数
-	Eigen::Vector4f points_init[POINTS_MAX];	//初期位置の点(Camera座標) 最大POINTS_XYZ_NUM個
-	Eigen::Vector4f points[POINTS_MAX];			//変換後の点(Camera座標) 最大POINTS_XYZ_NUM個
-	Eigen::Vector4f points_depth[POINTS_MAX];	//変換後の点(Depth座標)
-	cv::Scalar color[POINTS_MAX];				//色
-	int points_num;								//点の総数
-	int body_num;								//身体番号
+	Eigen::Vector4f *points_init;	//初期位置の点(Camera座標) 最大POINTS_XYZ_NUM個
+	Eigen::Vector4f *points;		//変換後の点(Camera座標) 最大POINTS_XYZ_NUM個
+	Eigen::Vector4f *points_depth;	//変換後の点(Depth座標)
+	cv::Scalar *color;				//色
+	int points_num;					//点の総数
+	int body_num;					//身体番号
 
-	// 関数
+	//関数
 	// インデックス画面におけるプレイヤーのインデックス色設定　★最初に呼び出す
 	void set_players_index_color();
 
-	// getinitしたときのデータをもらって保存しておくかんじの関数
+	// getinitしたときのデータをもらって保存しておく関数
 	void set_points_data(CComPtr<IKinectSensor> kinect, int person,
 		std::vector<UINT16> depthBuffer, int depthWidth, int depthHeight,
 		std::vector<BYTE> bodyIndexBuffer, int bodyIndexWidth, int bodyIndexHeight,

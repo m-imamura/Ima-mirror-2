@@ -28,9 +28,15 @@ private:
 	transformation trans;
 
 public:
+	int body_num;
+	bool ready;
 	
+	Human();//コンストラクタ
+	~Human();//デストラクタ
+
 	// データ入れ関数
-	void set_shape_bone(IBody* body);
+	void set_shape_init_bone(IBody* body);
+	void set_actor_init_bone(IBody* body);
 	void set_actor_bone(IBody* body);
 	void set_shape_points(CComPtr<IKinectSensor> kinect, int person,
 		std::vector<UINT16> depthBuffer, int depthWidth, int depthHeight,
@@ -42,37 +48,44 @@ public:
 	cv::Mat get_translate_body(CComPtr<IKinectSensor> kinect, cv::Mat campus,
 		FullscreenLayout fullscreen_layout, int bodyWidth, int bodyHeight);
 
-	Human(){
-		// 動的割り当て
-		//shape_bone = new Bone;
-		//actor_bone = new Bone;
-		//shape_points = new Points;
-		//trans = new transformation;
-		
-		// shape_boneとactor_boneのボーンの接続関係を定義
-		std::cout << "// shape_boneとactor_boneのボーンの接続関係を定義";
-		shape_bone.define_bone_connect(shape_bone.bone_connect);
-		actor_bone.define_bone_connect(actor_bone.bone_connect);
-	}
-
-	~Human(){
-	}
 };
 
+Human::Human(){
+	// 動的割り当て
+	//shape_bone = new Bone[1];
+	//actor_bone = new Bone[1];
+	//shape_points = new Points[1];
+	//std::cout << "Human::Human(): Humanのデータ動的割り当て\n";
+	ready = false;
+}
+
+Human::~Human(){
+	// 動的割り当て削除
+	//delete shape_bone;
+	//delete actor_bone;
+	//delete shape_points;
+	//std::cout << "Human::~Human(): Humanのデータ動的割り当て削除\n";
+}
 
 // データ入れ関数（ただの横流しだけど）
-void Human::set_shape_bone(IBody* body){
+void Human::set_shape_init_bone(IBody* body){
 	shape_bone.set_bones_init_data(body);
 }
+
+void Human::set_actor_init_bone(IBody* body){
+	actor_bone.set_bones_init_data(body);
+}
+
 void Human::set_actor_bone(IBody* body){
 	actor_bone.set_bones_data(body);
 }
+
 void Human::set_shape_points(CComPtr<IKinectSensor> kinect, int person,
 	std::vector<UINT16> depthBuffer, int depthWidth, int depthHeight,
 	std::vector<BYTE> bodyIndexBuffer, int bodyIndexWidth, int bodyIndexHeight,
 	std::vector<BYTE> colorBuffer, int colorWidth, int colorHeight,
 	unsigned int colorBytesPerPixel){
-	
+
 	shape_points.set_points_data(kinect, person, depthBuffer, depthWidth, depthHeight,
 		bodyIndexBuffer, bodyIndexWidth, bodyIndexHeight, colorBuffer, colorWidth, colorHeight,
 		colorBytesPerPixel);
@@ -82,11 +95,31 @@ void Human::set_shape_points(CComPtr<IKinectSensor> kinect, int person,
 cv::Mat Human::get_translate_body(CComPtr<IKinectSensor> kinect, cv::Mat campus,
 	FullscreenLayout fullscreen_layout,int bodyIndexWidth, int bodyIndexHeight){
 
+
+	cv::Mat init_body__now_body = cv::Mat::zeros(bodyIndexHeight, bodyIndexWidth, CV_8UC3);
+	for (int i = 0; i < BONES; i++){ // shape_bone_init
+		DrawEllipse draw_ellipse;
+		draw_ellipse.mydrawEllipse(kinect, init_body__now_body, shape_bone.bottom_init[i], 3, cv::Scalar(255, 255, 0));
+		draw_ellipse.mydrawEllipse(kinect, init_body__now_body, shape_bone.top_init[i], 3, cv::Scalar(255, 255, 0));
+	}
+	for (int i = 0; i < BONES; i++){ // actor_bone_init
+		DrawEllipse draw_ellipse;
+		draw_ellipse.mydrawEllipse(kinect, init_body__now_body, actor_bone.bottom_init[i], 3, cv::Scalar(0, 255, 255));
+		draw_ellipse.mydrawEllipse(kinect, init_body__now_body, actor_bone.top_init[i], 3, cv::Scalar(0, 255, 255));
+	}
+	for (int i = 0; i < BONES; i++){ // actor_bone_now
+		DrawEllipse draw_ellipse;
+		draw_ellipse.mydrawEllipse(kinect, init_body__now_body, actor_bone.bottom[i], 3, cv::Scalar(255, 0, 255));
+		draw_ellipse.mydrawEllipse(kinect, init_body__now_body, actor_bone.top[i], 3, cv::Scalar(255, 0, 255));
+	}
+
+	
 	// shapeの身体でactorの姿勢のときのbottomを計算
 	Eigen::Vector4f new_bottom[BONES];
 	for (int b = 0; b < BONES; b++){
 		new_bottom[b] << 0.0, 0.0, 0.0, 1.0;
 		int parent = shape_bone.bone_connect[b].parent; // 接続関係なのでactor_boneでもOK
+
 		if (parent == -1){
 			float y_diff = actor_bone.bottom_init[b].y() - shape_bone.bottom_init[b].y();
 			new_bottom[b] = actor_bone.bottom[b];
@@ -99,16 +132,16 @@ cv::Mat Human::get_translate_body(CComPtr<IKinectSensor> kinect, cv::Mat campus,
 			new_bottom[b].w() = 1.0;
 		}
 	}
-
-	
 	// new_bottomを描画
-	//for (int b = 0; b < BONES; b++){
-	//	mydrawEllipse(new_bone_bodyImage, new_bottom[b], 3, cv::Scalar(255, 255, 0));
-	//
-	//	Eigen::Vector4f new_top;
-	//	new_top.segment(0, 3) = new_bottom[b].segment(0, 3) + bone_data[shape][b].length * bone_data[actor][b].vector.segment(0, 3).normalized();
-	//	mydrawEllipse(new_bone_bodyImage, new_top, 3, cv::Scalar(255, 255, 0));
-	//}
+	for (int b = 0; b < BONES; b++){
+		DrawEllipse draw_ellipse;
+		draw_ellipse.mydrawEllipse(kinect, init_body__now_body, new_bottom[b], 3, cv::Scalar(255, 255, 255));
+		Eigen::Vector4f new_top;
+		new_top.segment(0, 3) = new_bottom[b].segment(0, 3) + shape_bone.length[b] * actor_bone.vector[b].segment(0, 3).normalized();
+		draw_ellipse.mydrawEllipse(kinect, init_body__now_body, new_top, 3, cv::Scalar(255, 255, 255));
+	}
+
+	cv::imshow("init_body__now_body" + body_num, init_body__now_body);
 
 	// 点群の変換
 	for (int p = 0; p < shape_points.points_num; p++){
@@ -220,5 +253,6 @@ cv::Mat Human::get_translate_body(CComPtr<IKinectSensor> kinect, cv::Mat campus,
 		}
 		// ↑もうちょっと簡単に書けるはずだから余裕があったら見る
 	}
+
 	return campus;
 }

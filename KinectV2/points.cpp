@@ -149,7 +149,7 @@ void Points::set_points_data(CComPtr<IKinectSensor> kinect, int person,
 			}
 		}
 	}
-	std::cout << "body_num " <<body_num << ": Points_num " << points_num << "\n";
+	//std::cout << "body_num " <<body_num << ": Points_num " << points_num << "\n";
 	
-	cv::imshow("Points_Image"+body_num, points_Image);
+	//cv::imshow("Points_Image"+body_num, points_Image);
 }

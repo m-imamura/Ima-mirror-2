@@ -41,15 +41,16 @@ void ShapeActor::set_shape_actor_own(IBody* bodies[PEOPLE]){
 		BOOLEAN isTracked = false;
 		ERROR_CHECK(body->get_IsTracked(&isTracked));
 		if (isTracked == true){
-			//bodyの行き先
-			actor[body_num] = body_num;
+			shape[body_num] = body_num;
+			actor[body_num] = body_num;//bodyの行き先
 		}
 	}
 	// 入れ替え結果を出力
 	for (int body_num = 0; body_num < PEOPLE; body_num++){
 		if (actor[body_num] != -1){
-			printf("%d → %d\n", body_num, actor[body_num]);
+			
 		}
+		printf("ShapeActor::set_shape_actor_own: %2d → %2d\n", body_num, actor[body_num]);
 	}
 }
 
@@ -85,7 +86,8 @@ void ShapeActor::set_shape_actor_exchange(IBody* bodies[PEOPLE]){
 	// 入れ替え結果を出力
 	for (int body_num = 0; body_num < PEOPLE; body_num++){
 		if (actor[body_num] != -1){
-			printf("%d → %d\n", body_num, actor[body_num]);
+			shape[body_num] = body_num;
 		}
+		printf("ShapeActor::set_shape_actor_own: %2d → %2d\n", shape[body_num], actor[body_num]);
 	}
 }

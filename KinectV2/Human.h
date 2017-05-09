@@ -19,8 +19,15 @@ private:
 	transformation trans;
 
 public:
+	int body_num;
+	bool ready;
+
+	Human();//コンストラクタ
+	~Human();//デストラクタ
+
 	// データ入れ関数
-	void set_shape_bone(IBody* body);
+	void set_shape_init_bone(IBody* body);
+	void set_actor_init_bone(IBody* body);
 	void set_actor_bone(IBody* body);
 	void set_shape_points(CComPtr<IKinectSensor> kinect, int person,
 		std::vector<UINT16> depthBuffer, int depthWidth, int depthHeight,

@@ -261,7 +261,7 @@ void ImamirrorApp::initialize()
 
 	full_layout_test.set_fullscreen_layout(depthWidth, depthHeight);
 
-	std::cout << "initialize";
+	std::cout << "initialize\n";
 
 }
 
@@ -277,6 +277,8 @@ void ImamirrorApp::mouseCallback(int event, int x, int y, int flags, void*)
 // 変換元のデータを取得
 void ImamirrorApp::getInitData()
 {
+	std::cout << "\n\ngetInitData():\n";
+
 	// 初期状態記録用
 	cv::Mat init_bodyImage = cv::Mat::zeros(424, 512, CV_8UC4);
 	cv::Mat init_depthImage = cv::Mat::zeros(depthHeight, depthWidth, CV_8UC1);
@@ -357,10 +359,16 @@ void ImamirrorApp::getInitData()
 			}
 
 			// 上で求めたアクターのボディ番号を取得
+			int shape_body = shape_actor.shape[body_num];
 			int actor_body = shape_actor.actor[body_num];
-
-			human[body_num].set_shape_bone(body);
-			//human[body_num].set_actor_bone(bodies[actor_body]); // これいる？
+			if (shape_body != -1 && actor_body != -1){
+				human[body_num].set_shape_init_bone(bodies[shape_body]);
+				std::cout << "getInitData(): human[" << body_num << "].set_shape_init_bone();\n";
+				human[body_num].set_actor_init_bone(bodies[actor_body]);
+				std::cout << "getInitData(): human[" << body_num << "].set_actor_init_bone();\n";
+				human[body_num].set_actor_bone(bodies[actor_body]);
+				std::cout << "getInitData(): human[" << body_num << "].set_actor_bone();\n";
+			}
 
 			gotBody = body_num;
 		}
@@ -381,10 +389,16 @@ void ImamirrorApp::getInitData()
 					continue;
 				}
 
-				human[person].set_shape_points(kinect, person,
-					depthBuffer, depthWidth, depthHeight,
-					bodyIndexBuffer, bodyIndexWidth, bodyIndexHeight,
-					colorBuffer, colorWidth, colorHeight, colorBytesPerPixel);
+				int shape_body = shape_actor.shape[person];
+				int actor_body = shape_actor.actor[person];
+				if (shape_body != -1 && actor_body != -1){
+					human[person].set_shape_points(kinect, person,
+						depthBuffer, depthWidth, depthHeight,
+						bodyIndexBuffer, bodyIndexWidth, bodyIndexHeight,
+						colorBuffer, colorWidth, colorHeight, colorBytesPerPixel);
+					std::cout << "getInitData(): human[" << person << "].set_shape_points()\n";
+					human[person].body_num = person;
+				}
 			}
 		}
 
@@ -475,7 +489,7 @@ void ImamirrorApp::drawBodyFrame()
 {
 	// 関節の位置をDepth座標系に変換して表示する
 	cv::Mat bodyImage = cv::Mat::zeros(424, 512, CV_8UC4);
-
+	
 	// すべてのBodyについて繰り返し描画
 	for (int body = 0; body < PEOPLE; body++){
 
@@ -492,16 +506,21 @@ void ImamirrorApp::drawBodyFrame()
 		}
 
 		// この辺テスト
+		int shape_body = shape_actor.shape[body];
 		int actor_body = shape_actor.actor[body];
-		//human[body].set_actor_bone(bodies[actor_body]);
+		if (shape_body != -1 && actor_body != -1){
+			//std::cout << "human[" << body <<"].shape " << "\n";
+			human[body].set_actor_bone(bodies[actor_body]);
+			human[body].ready = true;
+			//std::cout << "drawBodyFrame(): ready,shape_body == " << shape_body << ", actorbody == " << actor_body << "\n";
+		}
 		
-
 		// ポーズ認識
 		//check_base_posture(bone_data[body]);
 	}
 
 	// 表示
-	cv::imshow("BodyImage", bodyImage);
+	//cv::imshow("BodyImage", bodyImage);
 }
 
 // BodyIndexFrameの描画
@@ -575,32 +594,33 @@ void ImamirrorApp::drawImamirror2(){
 
 	//drawBackground(Imamirror2_full);
 
-	/*
+	
 	// すべてのBodyについて繰り返し描画
 	for (int body = 0; body < PEOPLE; body++){
-		if (shape_actor.actor[body] == -1){ // もしactorがいなかったら
+		// Bodyがなかったら終わり
+		if (bodies[body] == nullptr){
+			continue;
+		}
 
-			// Bodyがなかったら終わり
-			if (bodies[body] == nullptr){
-				continue;
-			}
+		// 追跡できてなかったら終わり
+		BOOLEAN isTracked = false;
+		ERROR_CHECK(bodies[body]->get_IsTracked(&isTracked));
+		if (!isTracked) {
+			continue;
+		}
 
-			// 追跡できてなかったら終わり
-			BOOLEAN isTracked = false;
-			ERROR_CHECK(bodies[body]->get_IsTracked(&isTracked));
-			if (!isTracked) {
-				continue;
-			}
-
-			// ここで根幹処理を呼び出す
-			//human[body].get_translate_body(kinect, Imamirror2_full, full_layout_test, bodyIndexWidth, bodyIndexHeight);
+		// ここで根幹処理を呼び出す
+		if (human[body].ready){
+			//std::cout << "drawImamirror2(): \n";
+			Imamirror2_full = human[body].get_translate_body(kinect, Imamirror2_full, full_layout_test, bodyIndexWidth, bodyIndexHeight);
+			//std::cout << "drawImamirror2(): human[" << body <<"].get_translate_body\n";
 		}
 	}
-	*/
+	
 	// フルスクリーン表示
 	cvNamedWindow("Ima-mirror2_full");
 	cv::setWindowProperty("Ima-mirror2_full", cv::WND_PROP_FULLSCREEN, CV_WINDOW_FULLSCREEN); // フルスクリーン設定
-	cv::imshow("Ima-mirror2_full-----", Imamirror2_full); // 表示
+	cv::imshow("Ima-mirror2_full", Imamirror2_full); // 表示
 	
 	//cv::imshow("new_body_", new_bone_bodyImage);
 

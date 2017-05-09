@@ -20,14 +20,14 @@ private:
 
 public:
 	// ボーンの情報
-	Eigen::Vector4f top_init[BONES];	//初期位置
-	Eigen::Vector4f bottom_init[BONES];//初期位置
-	Eigen::Vector4f vector_init[BONES];//初期方向
-	Eigen::Vector4f top[BONES];		//逐次位置
-	Eigen::Vector4f bottom[BONES];		//逐次位置
-	Eigen::Vector4f vector[BONES];		//逐次方向 (bottom -> top)
-	int parent[BONES];					//親ボーン
-	float length[BONES];				//長さ (vector_initの)
+	Eigen::Vector4f *top_init;	//初期位置
+	Eigen::Vector4f *bottom_init;//初期位置
+	Eigen::Vector4f *vector_init;//初期方向
+	Eigen::Vector4f *top;		//逐次位置
+	Eigen::Vector4f *bottom;		//逐次位置
+	Eigen::Vector4f *vector;		//逐次方向 (bottom -> top)
+	int *parent;					//親ボーン
+	float *length;				//長さ (vector_initの)
 
 	class Bone_connect{ // ボーン１本分の接続関係
 	private:
@@ -37,16 +37,13 @@ public:
 		int parent;	//親ボーン
 		double impactrange; //ボーンの影響範囲
 	};
-	Bone_connect bone_connect[BONES];
+	Bone_connect *bone_connect;
 
 	// 関数
-	// コンストラクタ
-	Bone::Bone(){
-		printf("Boneクラスのコンストラクタに入った"); // 入っていない 呼び出しもとでnewするといけるらしい．
-		// ボーンの接続関係を定義する．
-		//define_bone_connect(bone_connect); // ←できないっぽい?考える．
-	}
 
+	Bone();//コンストラクタ
+	~Bone();//デストラクタ
+	
 	// ジョイントポジションをもらってボーン情報（自前）を更新する関数
 	void set_bones_data(IBody* body);
 
@@ -57,21 +54,51 @@ public:
 	void define_bone_connect(Bone_connect bone_connect[BONES]);
 };
 
-void Bone::set_bones_init_data(IBody* body){
+// コンストラクタ
+Bone::Bone(){
+	// 動的割り当て
+	top_init = new Eigen::Vector4f[BONES];	//初期位置
+	bottom_init = new Eigen::Vector4f[BONES];//初期位置
+	vector_init = new Eigen::Vector4f[BONES];//初期方向
+	top = new Eigen::Vector4f[BONES];
+	bottom = new Eigen::Vector4f[BONES];		//逐次位置
+	vector = new Eigen::Vector4f[BONES];		//逐次方向 (bottom -> top)
+	parent = new int[BONES];					//親ボーン
+	length = new float[BONES];				//長さ (vector_initの)
+	bone_connect = new Bone_connect[BONES];
+	std::cout << "Bone::Bone(): コンストラクタで動的割り当て\n";
 
 	define_bone_connect(bone_connect);
+	std::cout << "Bone::Bone(): コンストラクタでdefine_bone_connect()\n";
+}
 
-	Eigen::Vector4f joint_position[JOINTS]; //関節の位置
+Bone::~Bone(){
+	delete top_init;	//初期位置
+	delete bottom_init;//初期位置
+	delete vector_init;//初期方向
+	delete top;
+	delete bottom;		//逐次位置
+	delete vector;		//逐次方向 (bottom -> top)
+	delete parent;					//親ボーン
+	delete length;				//長さ (vector_initの)
+	delete bone_connect;
+	std::cout << "Boneにて動的割り当て削除\n";
+}
 
+void Bone::set_bones_init_data(IBody* body){
+
+	Eigen::Vector4f *joint_position; //関節の位置
+	joint_position = new Eigen::Vector4f[JOINTS];
+	
 	// 関節の位置を取得
 	Joint joints[JointType::JointType_Count];
 	body->GetJoints(JointType::JointType_Count, joints);
 	for (auto joint : joints) {
-		printf("あああああ");
 		if (joint.TrackingState == TrackingState::TrackingState_Tracked) {
+			//drawEllipse(bodyImage, joint, 3, cv::Scalar(255, 255, 255));
 			joint_position[joint.JointType] << joint.Position.X, joint.Position.Y, joint.Position.Z, 1.0;
-			//drawEllipse(init_bodyImage, joint, 3, cv::Scalar(255, 255, 255));
 		}
+		//std::cout << joint.JointType << " " << joint_position[joint.JointType] << "\n";
 	}
 
 	// Bodyがあればすべてのボーンについて繰り返し処理
@@ -87,27 +114,32 @@ void Bone::set_bones_init_data(IBody* body){
 
 		length[i] = vector_init[i].segment(0, 3).norm();
 		vector_init[i].segment(0, 3) = vector_init[i].segment(0, 3).normalized();
+
 	}
+
+	delete joint_position;
 }
 
 // ボーン情報の更新
 void Bone::set_bones_data(IBody* body){ // bodies[6]の１体分をもらってきているIBodyのbody
 
-	Eigen::Vector4f joint_position[JOINTS];
-	//joint_position = new Eigen::Vector4f[JOINTS]; //関節の位置
+	Eigen::Vector4f *joint_position; //関節の位置
+	joint_position = new Eigen::Vector4f[JOINTS];
 
 	// 関節の位置を取得
-	Joint joints[JointType::JointType_Count];
+	Joint *joints;
+	joints = new Joint[JointType::JointType_Count];
+
 	body->GetJoints(JointType::JointType_Count, joints);
-	for (auto joint : joints) {
-		printf("あああああ");
-		if (joint.TrackingState == TrackingState::TrackingState_Tracked) {
-			//drawEllipse(bodyImage, joint, 3, cv::Scalar(255, 255, 255));
-			joint_position[joint.JointType] << joint.Position.X, joint.Position.Y, joint.Position.Z, 1.0;
+	for (int i = 0; i < JointType::JointType_Count; i++) {
+		if (joints[i].TrackingState == TrackingState::TrackingState_Tracked) {
+			joint_position[i] << joints[i].Position.X, joints[i].Position.Y, joints[i].Position.Z, 1.0;
+			//drawEllipse(init_bodyImage, joint, 3, cv::Scalar(255, 255, 255));
 		}
 	}
+	delete joints;
 
-	//すべてのボーンについて繰り返し処理 // 二重ループを解消できる？
+	//すべてのボーンについて繰り返し処理
 	for (int i = 0; i < BONES; i++){
 
 		// i番目のボーンのtop，bottomがどの関節かを求めて，関節の位置を入れる
@@ -122,7 +154,7 @@ void Bone::set_bones_data(IBody* body){ // bodies[6]の１体分をもらってきているIB
 
 	//printf("腰ボーンのx位置 %f\n", bottom[0].x());
 
-	//delete joint_position;
+	delete joint_position;
 }
 
 
@@ -246,6 +278,6 @@ void Bone::define_bone_connect(Bone::Bone_connect bone_connect[BONES]){
 
 	// テスト用出力
 	for (int i = 0; i < BONES; i++){
-	//	printf("ボーン %d : ボトム %d　トップ %d\n",i, bone_connect[i].bottom, bone_connect[i].top);
+	//	printf("Bone::define_bone_connect(): ボーン %d : ボトム %d　トップ %d\n",i, bone_connect[i].bottom, bone_connect[i].top);
 	}
 }

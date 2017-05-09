@@ -22,14 +22,14 @@ private:
 
 public:
 	// ボーンの情報
-	Eigen::Vector4f top_init[BONES];	//初期位置
-	Eigen::Vector4f bottom_init[BONES];//初期位置
-	Eigen::Vector4f vector_init[BONES];//初期方向
-	Eigen::Vector4f top[BONES];		//逐次位置
-	Eigen::Vector4f bottom[BONES];		//逐次位置
-	Eigen::Vector4f vector[BONES];		//逐次方向 (bottom -> top)
-	int parent[BONES];					//親ボーン (使ってない？)
-	float length[BONES];				//長さ (vector_initの)
+	Eigen::Vector4f *top_init;	//初期位置
+	Eigen::Vector4f *bottom_init;//初期位置
+	Eigen::Vector4f *vector_init;//初期方向
+	Eigen::Vector4f *top;		//逐次位置
+	Eigen::Vector4f *bottom;		//逐次位置
+	Eigen::Vector4f *vector;		//逐次方向 (bottom -> top)
+	int *parent;					//親ボーン
+	float *length;				//長さ (vector_initの)
 
 	class Bone_connect{ // ボーン１本分の接続関係
 	private:
@@ -40,9 +40,12 @@ public:
 		double impactrange; //ボーンの影響範囲
 
 	};
-	Bone_connect bone_connect[BONES];
+	Bone_connect *bone_connect;
 
 	// 関数
+	Bone();//コンストラクタ
+	~Bone();//デストラクタ
+
 	// ジョイントポジションをもらってボーン情報（自前）を更新する関数
 	void set_bones_data(IBody* body);
 
