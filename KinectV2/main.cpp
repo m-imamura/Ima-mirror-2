@@ -16,6 +16,7 @@
 #include "shape_actor.h"
 #include "fullscreen_layout.h"
 #include "Human.h"
+#include "background.h"
 
 
 // 書籍での解説のためにマクロにしています。実際には展開した形で使うことを検討してください。
@@ -46,7 +47,6 @@ private:
 	// Depth関連
 	CComPtr<IDepthFrameReader> depthFrameReader = nullptr;
 	std::vector<UINT16> depthBuffer;	// 取得したDepthを格納するバッファ
-	std::vector<UINT16> background_depthBuffer;//背景のDepthを格納するバッファ
 	int depthWidth;
 	int depthHeight;
 
@@ -61,11 +61,13 @@ private:
 	// 表示モード関係
 	bool partner_change = true;// 他者と入れ替え可自分と入れ替えか
 	bool color_view_tf = false;// カラーか白黒か．
-	bool background_tf = false;// 背景あるなし
+	bool view_background = false;// 背景あるなし
 	bool get_background = false;// 背景を取得した貸してないか
 
-	// 背景を保存するMat
-	std::vector<BYTE> backgroundBuffer; // std::vector<BYTE> colorBuffer; と同じ
+	// 背景
+	Background background;
+	std::vector<UINT16> background_depthBuffer;//背景のDepthを格納するバッファ
+	std::vector<BYTE> background_colorBuffer; // std::vector<BYTE> colorBuffer; と同じ
 
 	Human *human;// 人のデータ
 	ShapeActor shape_actor;// 交換関係
@@ -121,19 +123,19 @@ void ImamirrorApp::run()
 			//partner_or_own();
 		}
 		if (key == 'b'){
-			backgroundBuffer = colorBuffer; // カラーバッファーの取得
+			background_colorBuffer = colorBuffer; // カラーバッファーの取得
 			background_depthBuffer = depthBuffer; // デプスバッファーの取得
 			get_background = true;
 			std::cout << "背景を取得\n";
 		}
 		if (key == 'v'){
 			if (get_background){ // 一回でも背景取得していないと無効
-				if (background_tf){
-					background_tf = false;
+				if (view_background){
+					view_background = false;
 					std::cout << "背景を非表示\n";
 				}
 				else{
-					background_tf = true;
+					view_background = true;
 					std::cout << "背景を表示\n";
 				}
 			}
@@ -592,8 +594,13 @@ void ImamirrorApp::drawImamirror2(){
 	cv::Mat Imamirror2_full = cv::Mat::zeros(full_layout_test.DisplayHeight, full_layout_test.DisplayWidth, CV_8UC3);
 	// ↑CV_8UC4→CV_8UC3にしたら，メイン画面に画像を貼れるようになった．
 
-	//drawBackground(Imamirror2_full);
-
+	if (get_background && view_background){
+		Imamirror2_full = background.drawBackground(
+			kinect, Imamirror2_full, full_layout_test,
+			background_depthBuffer, depthWidth, depthHeight,
+			background_colorBuffer, colorWidth, colorHeight,
+			colorBytesPerPixel);
+	}
 	
 	// すべてのBodyについて繰り返し描画
 	for (int body = 0; body < PEOPLE; body++){
@@ -611,9 +618,8 @@ void ImamirrorApp::drawImamirror2(){
 
 		// ここで根幹処理を呼び出す
 		if (human[body].ready){
-			//std::cout << "drawImamirror2(): \n";
-			Imamirror2_full = human[body].get_translate_body(kinect, Imamirror2_full, full_layout_test, bodyIndexWidth, bodyIndexHeight);
-			//std::cout << "drawImamirror2(): human[" << body <<"].get_translate_body\n";
+			Imamirror2_full = human[body].get_translate_body
+				(kinect, Imamirror2_full, full_layout_test, bodyIndexWidth, bodyIndexHeight);
 		}
 	}
 	

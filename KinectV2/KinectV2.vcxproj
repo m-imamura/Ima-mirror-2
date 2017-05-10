@@ -102,6 +102,7 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="background.h" />
     <ClInclude Include="bone.h" />
     <ClInclude Include="ComPtr.h" />
     <ClInclude Include="draw_ellipse.h" />
